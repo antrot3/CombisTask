@@ -1,23 +1,13 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations;
 
 namespace DAL.Models
 {
-    public class AppUser
+    public class AppUser : IdentityUser<Guid> // Inherit from IdentityUser and use Guid as the key
     {
-        [Key]
-        public Guid Id { get; set; }
-
         [Required]
         [MaxLength(100)]
         public string FullName { get; set; }
-
-        [Required]
-        [EmailAddress]
-        public string Email { get; set; }
-
-        [Required]
-        public string PasswordHash { get; set; }
 
         [Required]
         public string Role { get; set; } = "Korisnik"; // or "Administrator"

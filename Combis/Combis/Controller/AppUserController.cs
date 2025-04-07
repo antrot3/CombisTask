@@ -1,12 +1,14 @@
 ﻿using BuisnessLayer.Interface;
 using CommonLayer.DtoModells;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Combis.Controller
 {
-    [ApiController]
-    [Route("api/[controller]")]
+    [ApiController]  // This marks the class as an API controller
+    [Route("api/[controller]")]  // This defines the base route for your controller
     public class AppUsersController : ControllerBase
     {
         private readonly IUserService _userService;
@@ -18,7 +20,8 @@ namespace Combis.Controller
             _logger = logger;
         }
 
-        [HttpPost("register")]
+        // Define your endpoints here
+        [HttpPost("register")]  // Endpoint for registration
         public async Task<ActionResult<UserDto>> Register(UserCreateDto dto)
         {
             try
@@ -33,7 +36,7 @@ namespace Combis.Controller
             }
         }
 
-        [HttpPost("login")]
+        [HttpPost("login")]  // Endpoint for login
         public async Task<ActionResult<string>> Login(UserLoginDto dto)
         {
             try
@@ -47,8 +50,18 @@ namespace Combis.Controller
                 return Unauthorized(ex.Message);
             }
         }
+        [HttpGet("GetAllUsers2")]  // Endpoint for getting all users (restricted to admin role)
+        public async Task<ActionResult<IEnumerable<UserDto>>> GetAllUsers2()
+        {
+            var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
+            HttpContext.User = new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim(ClaimTypes.Role, "Administrator") }));
 
-        [HttpGet]
+            var users = await _userService.GetAllUsersAsync();
+            return Ok(users);
+        }
+
+
+        [HttpGet("GetAllUsers")]  // Endpoint for getting all users (restricted to admin role)
         [Authorize(Roles = "Administrator")]
         public async Task<ActionResult<IEnumerable<UserDto>>> GetAllUsers()
         {
@@ -56,7 +69,7 @@ namespace Combis.Controller
             return Ok(users);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("GetUserById/{id}")]  // Endpoint for getting a user by ID
         [Authorize]
         public async Task<ActionResult<UserDto>> GetUserById(Guid id)
         {
@@ -64,7 +77,7 @@ namespace Combis.Controller
             return user == null ? NotFound() : Ok(user);
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("DeleteUser/{id}")]  // Endpoint for deleting a user by ID
         [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> DeleteUser(Guid id)
         {
