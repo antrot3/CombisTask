@@ -12,6 +12,8 @@ using ServiceLayer.Interface;
 using ServiceLayer.Service;
 using DAL.Interface;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,7 +21,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Add Identity services
+// Add Identity services for Cookie-based authentication
 builder.Services.AddIdentity<AppUser, IdentityRole<Guid>>(options =>
 {
     options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);  // Lockout duration
@@ -41,48 +43,54 @@ builder.Services.AddAuthentication(options =>
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 })
-    .AddJwtBearer(options =>
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
     {
-        options.TokenValidationParameters = new TokenValidationParameters
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:ValidIssuer"],
+        ValidAudience = builder.Configuration["Jwt:ValidAudience"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:SymmetricSecurityKey"])),
+        RoleClaimType = ClaimTypes.Role
+    };
+    options.Events = new JwtBearerEvents
+    {
+        OnAuthenticationFailed = context =>
         {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:ValidIssuer"],
-            ValidAudience = builder.Configuration["Jwt:ValidAudience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:SymmetricSecurityKey"])),
-            RoleClaimType = ClaimTypes.Role
-        };
-        options.Events = new JwtBearerEvents
+            Console.WriteLine("Authentication failed: " + context.Exception);
+            return Task.CompletedTask;
+        },
+        OnTokenValidated = context =>
         {
-            OnAuthenticationFailed = context =>
-            {
-                // Log any failures for debugging
-                Console.WriteLine("Authentication failed: " + context.Exception);
-                return Task.CompletedTask;
-            },
-            OnTokenValidated = context =>
-            {
-                // This can be useful for debugging if the token is being validated correctly
-                Console.WriteLine("Token validated.");
-                return Task.CompletedTask;
-            },
-            OnForbidden = context =>
-            {
-                // Log any forbidden requests for debugging
-                Console.WriteLine("Forbidden request.");
-                return Task.CompletedTask;
-            },
-            OnMessageReceived = context =>
-            {
-                // Log any forbidden requests for debugging
-                Console.WriteLine("message recived");
-                return Task.CompletedTask;
-            },
+            Console.WriteLine("Token validated.");
+            return Task.CompletedTask;
+        },
+        OnForbidden = context =>
+        {
+            Console.WriteLine("Forbidden request.");
+            return Task.CompletedTask;
+        },
+        OnMessageReceived = context =>
+        {
+            Console.WriteLine("Message received");
+            return Task.CompletedTask;
+        },
+    };
+});
 
-        };
-    });
+// Cookie Authentication for MVC and Web apps
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+})
+.AddCookie(options =>
+{
+    options.LoginPath = "/Account/Login";  // Redirect to login page if not authenticated
+    options.LogoutPath = "/Account/Logout"; // Path for logout
+});
 
 // Add authorization services
 builder.Services.AddAuthorization();
@@ -101,9 +109,12 @@ builder.Services.AddScoped<IJwtService, JwtService>();  // Registering IJwtServi
 
 // Register the controllers
 builder.Services.AddControllers();
+builder.Services.AddSingleton<ITempDataProvider, CookieTempDataProvider>();
 
 // Add services for Swagger
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddControllersWithViews();
+
 builder.Services.AddSwaggerGen(options =>
 {
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -151,9 +162,15 @@ if (app.Environment.IsDevelopment())
 // Enable routing and controllers
 app.UseRouting();
 
-// Enable authentication and authorization middleware
-app.UseAuthentication(); // Make sure this is before UseAuthorization
+// Enable HTTPS redirection, authentication, and authorization
+app.UseHttpsRedirection();
+app.UseAuthentication(); // This should be before UseAuthorization
 app.UseAuthorization();  // This should be after UseAuthentication
+
+// Map Controller Routes
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 // Map API controllers
 app.MapControllers();

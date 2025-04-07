@@ -3,15 +3,17 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.11.35312.102
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Combis", "Combis\Combis.csproj", "{56A0D905-4A7C-4A95-BB9C-C4D1B4B8D49C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Combis", "Combis\Combis.csproj", "{56A0D905-4A7C-4A95-BB9C-C4D1B4B8D49C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceLayer", "ServiceLayer\ServiceLayer.csproj", "{54E7148D-A009-491F-8CEE-C8BF779D7192}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceLayer", "ServiceLayer\ServiceLayer.csproj", "{54E7148D-A009-491F-8CEE-C8BF779D7192}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BuisnessLayer", "BuisnessLayer\BuisnessLayer.csproj", "{F307E07F-4B03-48DC-97C8-72EDBCEA90B2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BuisnessLayer", "BuisnessLayer\BuisnessLayer.csproj", "{F307E07F-4B03-48DC-97C8-72EDBCEA90B2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DAL", "DAL\DAL.csproj", "{EC6A172B-8F77-4933-8EE1-9B12A1F0E620}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DAL", "DAL\DAL.csproj", "{EC6A172B-8F77-4933-8EE1-9B12A1F0E620}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommonLayer", "CommonLayer\CommonLayer.csproj", "{7B2D2508-E53E-4A3C-B222-FEAA60441264}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CommonLayer", "CommonLayer\CommonLayer.csproj", "{7B2D2508-E53E-4A3C-B222-FEAA60441264}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BuisnessLayerTests", "BuisnessLayerTests\BuisnessLayerTests.csproj", "{5DE877F4-E6E2-4F23-B365-5877D4778F63}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{7B2D2508-E53E-4A3C-B222-FEAA60441264}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7B2D2508-E53E-4A3C-B222-FEAA60441264}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7B2D2508-E53E-4A3C-B222-FEAA60441264}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5DE877F4-E6E2-4F23-B365-5877D4778F63}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5DE877F4-E6E2-4F23-B365-5877D4778F63}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5DE877F4-E6E2-4F23-B365-5877D4778F63}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5DE877F4-E6E2-4F23-B365-5877D4778F63}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

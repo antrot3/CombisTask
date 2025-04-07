@@ -1,0 +1,24 @@
+﻿@model IEnumerable<CommonLayer.DtoModells.UserDto>
+<h2>User Dashboard</h2>
+<table>
+    <thead>
+        <tr><th>Name</th><th>Email</th><th>Role</th><th>Action</th></tr>
+    </thead>
+    <tbody>
+        @foreach (var user in Model)
+        {
+            <tr>
+                <td>@user.FullName</td>
+                <td>@user.Email</td>
+                <td>@user.Role</td>
+                <td>
+                    <form asp-action="Delete" method="post">
+                        <input type="hidden" name="id" value="@user.Id" />
+                        <button type="submit">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+<p>Want to see the API documentation? <a href="/swagger" target="_blank">View Swagger Docs</a></p>
