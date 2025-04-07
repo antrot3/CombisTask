@@ -1,0 +1,30 @@
+services:
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: combis_db
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourStrongPassword123!  # Update this to a strong password
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql_data:/var/opt/mssql
+
+  combis:
+    build:
+      context: .
+      dockerfile: ./Combis/Dockerfile
+    container_name: combis_app
+    depends_on:
+      - mssql
+    ports:
+      - "8080:80"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: "http://+:80"
+      ConnectionStrings__DefaultConnection: "Server=mssql;Database=Combis;User Id=sa;Password=YourStrongPassword123!;TrustServerCertificate=True"
+    command: >
+      sh -c "dotnet ef database update --project ../DAL/DAL.csproj --startup-project Combis.csproj && dotnet Combis.dll"
+
+volumes:
+  mssql_data:
