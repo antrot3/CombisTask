@@ -1,0 +1,6 @@
+@Combis_HostAddress = http://localhost:5013
+
+GET {{Combis_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
