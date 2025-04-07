@@ -55,7 +55,6 @@ namespace Combis.Controller
         {
             var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
             HttpContext.User = new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim(ClaimTypes.Role, "Administrator") }));
-
             var users = await _userService.GetAllUsersAsync();
             return Ok(users);
         }

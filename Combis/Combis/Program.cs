@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using DAL;
@@ -13,22 +14,21 @@ using ServiceLayer.Service;
 using DAL.Interface;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
-using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Add DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Add Identity services for Cookie-based authentication
+// Add Identity services (for cookie auth)
 builder.Services.AddIdentity<AppUser, IdentityRole<Guid>>(options =>
 {
-    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);  // Lockout duration
-    options.Lockout.MaxFailedAccessAttempts = 6;  // Max failed login attempts
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+    options.Lockout.MaxFailedAccessAttempts = 6;
     options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
     options.Password.RequireDigit = true;
-    options.Password.RequiredLength = 8;  // Minimum password length
+    options.Password.RequiredLength = 8;
     options.Password.RequireLowercase = true;
     options.Password.RequireNonAlphanumeric = false;
     options.Password.RequireUppercase = true;
@@ -37,11 +37,13 @@ builder.Services.AddIdentity<AppUser, IdentityRole<Guid>>(options =>
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
 
-// JWT authentication setup
+// Register JWT authentication (for API calls)
 builder.Services.AddAuthentication(options =>
 {
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    // Default scheme for API endpoints
+    options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
 })
 .AddJwtBearer(options =>
 {
@@ -60,61 +62,40 @@ builder.Services.AddAuthentication(options =>
     {
         OnAuthenticationFailed = context =>
         {
-            Console.WriteLine("Authentication failed: " + context.Exception);
+            Console.WriteLine("JWT Authentication failed: " + context.Exception);
             return Task.CompletedTask;
-        },
-        OnTokenValidated = context =>
-        {
-            Console.WriteLine("Token validated.");
-            return Task.CompletedTask;
-        },
-        OnForbidden = context =>
-        {
-            Console.WriteLine("Forbidden request.");
-            return Task.CompletedTask;
-        },
-        OnMessageReceived = context =>
-        {
-            Console.WriteLine("Message received");
-            return Task.CompletedTask;
-        },
+        }
     };
 });
 
-// Cookie Authentication for MVC and Web apps
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-})
-.AddCookie(options =>
-{
-    options.LoginPath = "/Account/Login";  // Redirect to login page if not authenticated
-    options.LogoutPath = "/Account/Logout"; // Path for logout
-});
+// Register Cookie authentication (for MVC)
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Account/Login";
+        options.LogoutPath = "/Account/Logout";
+        options.SlidingExpiration = true;
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+        // If running on HTTPS, you may need to set SecurePolicy:
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    });
 
-// Add authorization services
+// IMPORTANT: If you call AddAuthentication twice, the last call overrides the defaults.
+// To combine both, you can set defaults for API endpoints separately and explicitly call SignInAsync with the cookie scheme.
+// For our purposes, our login action will use the cookie scheme.
+
+// Add Authorization
 builder.Services.AddAuthorization();
 
-// Register IUserRepository and UserRepository
+// Register your services
 builder.Services.AddScoped<IUserRepository, UserRepository>();
-
-// Register IUserService and UserService
 builder.Services.AddScoped<IUserService, UserService>();
-
-// Register IAppUserService and AppUserService
 builder.Services.AddScoped<IAppUserService, AppUserService>();
+builder.Services.AddScoped<IJwtService, JwtService>();
 
-// Register IJwtService and JwtService
-builder.Services.AddScoped<IJwtService, JwtService>();  // Registering IJwtService
-
-// Register the controllers
 builder.Services.AddControllers();
-builder.Services.AddSingleton<ITempDataProvider, CookieTempDataProvider>();
-
-// Add services for Swagger
-builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddControllersWithViews();
-
+builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -126,17 +107,12 @@ builder.Services.AddSwaggerGen(options =>
         BearerFormat = "JWT",
         Description = "Enter 'Bearer' followed by a space and the JWT token."
     });
-
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
             new OpenApiSecurityScheme
             {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
+                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
             },
             new string[] {}
         }
@@ -149,31 +125,24 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    dbContext.Database.Migrate();  // Apply any pending migrations to the database
+    dbContext.Database.Migrate();
 }
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-// Enable routing and controllers
+app.UseHttpsRedirection();
 app.UseRouting();
 
-// Enable HTTPS redirection, authentication, and authorization
-app.UseHttpsRedirection();
-app.UseAuthentication(); // This should be before UseAuthorization
-app.UseAuthorization();  // This should be after UseAuthentication
+app.UseAuthentication(); // Must be before UseAuthorization
+app.UseAuthorization();
 
-// Map Controller Routes
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-
-// Map API controllers
 app.MapControllers();
 
-// Run the app
 app.Run();

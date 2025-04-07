@@ -29,8 +29,6 @@ namespace CombisMVC.Controllers
             }
 
             var result = await _userService.RegisterAsync(dto);
-
-
             return Ok("Registration succes");
         }
 
@@ -51,17 +49,15 @@ namespace CombisMVC.Controllers
                 return BadRequest("Invalid credentials.");
             }
 
-            // Create JWT token and store it in the authentication context
             var handler = new JwtSecurityTokenHandler();
             var jwt = handler.ReadJwtToken(token);
             var claims = jwt.Claims;
             var identity = new ClaimsIdentity(claims, "jwt");
             var principal = new ClaimsPrincipal(identity);
-
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
-            // Redirect to the Dashboard after successful login
-            return RedirectToAction("Index", "Dashboard");
+            // Return OK with a redirect URL; alternatively, perform a server-side redirect
+            return Ok(new { redirectUrl = Url.Action("Index", "Dashboard") });
         }
 
         public async Task<IActionResult> Logout()

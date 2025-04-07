@@ -1,6 +1,6 @@
 ﻿@model CommonLayer.DtoModells.UserCreateDto
 
-<h2>lOGIN</h2>
+<h2>Login</h2>
 
 <form id="registerForm" method="post">
     <div>
@@ -15,29 +15,31 @@
 </form>
 
 <!-- Link to Swagger -->
+<p>Register <a href="/Account/Register" target="_blank">View Swagger Docs</a></p>
 <p>Want to see the API documentation? <a href="/swagger" target="_blank">View Swagger Docs</a></p>
 
 <script>
-    // JavaScript for submitting the registration form
     document.getElementById("registerForm").addEventListener("submit", async function (e) {
-        e.preventDefault();  // Prevent default form submission
-
-        // Create an object to hold the form data
+        e.preventDefault();  
         let formData = {
             Email: document.getElementById("Email").value,
             Password: document.getElementById("Password").value,
         };
 
         try {
-            // Send the data via fetch to the server
             const response = await fetch('@Url.Action("Login", "Account")', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',  // Set the correct content type for JSON
+                    'Content-Type': 'application/json',  
                 },
-                body: JSON.stringify(formData)  // Send form data as JSON
+                body: JSON.stringify(formData) 
             });
 
+            if (response.ok) {
+                window.location.href = '/Dashboard/Index';  
+            } else {
+                alert('Login failed. Please check your credentials and try again.');
+            }
         } catch (error) {
             console.error('Error:', error);
             alert('An error occurred. Please try again.');
