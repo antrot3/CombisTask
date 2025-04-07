@@ -2,3 +2,10 @@
 /Combis/Combis/obj
 /Combis/.vs
 /Combis/Combis/bin
+/Combis/BuisnessLayer/obj
+/Combis/BuisnessLayer/bin
+/Combis/CommonLayer/obj
+/Combis/DAL/bin
+/Combis/DAL/obj
+/Combis/ServiceLayer/bin
+/Combis/ServiceLayer/obj
