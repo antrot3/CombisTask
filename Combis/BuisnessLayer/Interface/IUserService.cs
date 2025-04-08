@@ -1,4 +1,5 @@
 ﻿using CommonLayer.DtoModells;
+using System.Security.Claims;
 
 namespace BuisnessLayer.Interface
 {
@@ -10,5 +11,6 @@ namespace BuisnessLayer.Interface
         Task<UserDto> GetUserByIdAsync(Guid id);
         Task<bool> DeleteUserAsync(Guid id);
         Task<bool> UpdateUser(UserDto userDto);
+        Task<UserAuthResult> LoginUserToAppAsync(UserLoginDto dto);
     }
 }

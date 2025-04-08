@@ -2,6 +2,8 @@
 using CommonLayer.DtoModells;
 using DAL.Interface;
 using DAL.Models;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace BuisnessLayer
 {
@@ -34,7 +36,7 @@ namespace BuisnessLayer
             if (dto.IsAdministrator == true)
                 user.Role = "Administrator";
             else
-                user.Role = "User";
+                user.Role = "Klijent";
 
             var created = await _repo.AddAsync(user);
 
@@ -48,6 +50,34 @@ namespace BuisnessLayer
                 throw new Exception("Invalid credentials");
 
             return _jwtService.GenerateToken(user);
+        }
+
+        public async Task<UserAuthResult> LoginUserToAppAsync(UserLoginDto dto)
+        {
+            var token = await LoginAsync(dto);
+            if (string.IsNullOrEmpty(token))
+            {
+                throw new Exception("Invalid credentials");
+            }
+
+            var user = await _repo.GetByEmailAsync(dto.Email);
+            if (user == null)
+            {
+                throw new Exception("User not found");
+            }
+
+            var handler = new JwtSecurityTokenHandler();
+            var jwt = handler.ReadJwtToken(token);
+            var claims = jwt.Claims;
+
+            var identity = new ClaimsIdentity(claims, "jwt");
+            var principal = new ClaimsPrincipal(identity);
+            var userDto =  new UserDto { Id = user.Id, FullName = user.FullName, Email = user.Email, Role = user.Role };
+            return new UserAuthResult
+            {
+                Principal = principal,
+                User = userDto
+            };
         }
 
         public async Task<IEnumerable<UserDto>> GetAllUsersAsync()

@@ -1,5 +1,6 @@
 ﻿using BuisnessLayer.Interface;
 using CommonLayer.DtoModells;
+using Microsoft.AspNet.Identity;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
@@ -44,20 +45,17 @@ namespace CombisMVC.Controllers
                 return BadRequest("Invalid data.");
             }
 
-            var token = await _appuserService.LoginAsync(dto);
-            if (string.IsNullOrEmpty(token.Value))
+            var result = await _appuserService.LoginUserToAppAsync(dto);
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, result.Value.Principal);
+
+            if (result.Value.User.Role == "Administrator")
+                return Ok(new { redirectUrl = Url.Action("Index", "Dashboard") });
+            else if (result.Value.User.Role == "Klijent")
             {
-                return BadRequest("Invalid credentials.");
+                return Ok(new { redirectUrl = Url.Action("Klijent", "Dashboard", new { id = result.Value.User.Id }) });
             }
 
-            var handler = new JwtSecurityTokenHandler();
-            var jwt = handler.ReadJwtToken(token.Value);
-            var claims = jwt.Claims;
-            var identity = new ClaimsIdentity(claims, "jwt");
-            var principal = new ClaimsPrincipal(identity);
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
-
-            return Ok(new { redirectUrl = Url.Action("Index", "Dashboard") });
+            return BadRequest("Unsupported role.");
         }
 
         public async Task<IActionResult> Logout()

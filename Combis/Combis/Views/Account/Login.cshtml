@@ -56,7 +56,12 @@
             });
 
             if (response.ok) {
-                window.location.href = '/Dashboard/Index';
+                const data = await response.json();
+                if (data.redirectUrl) {
+                    window.location.href = data.redirectUrl;
+                } else {
+                    alert('No redirect URL provided.');
+                }
             } else {
                 alert('Login failed. Please check your credentials and try again.');
             }

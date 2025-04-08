@@ -2,6 +2,7 @@
 using CommonLayer.DtoModells;
 using Microsoft.AspNetCore.Mvc;
 using ServiceLayer.Interface;
+using System.Security.Claims;
 
 namespace ServiceLayer.Service
 {
@@ -27,6 +28,11 @@ namespace ServiceLayer.Service
         public async Task<ActionResult<string>> LoginAsync(UserLoginDto loginDto)
         {
             return await _userService.LoginAsync(loginDto);
+        }
+
+        public async Task<ActionResult<UserAuthResult>> LoginUserToAppAsync(UserLoginDto loginDto)
+        {
+            return await _userService.LoginUserToAppAsync(loginDto);
         }
 
         public async Task<ActionResult<UserDto>> GetUserByIdAsync(Guid id)

@@ -5,7 +5,6 @@ using ServiceLayer.Interface;
 
 namespace CombisMVC.Controllers
 {
-    [Authorize(Roles = "Administrator")]
     public class DashboardController : Controller
     {
         private readonly IAppUserService _appUserService;
@@ -15,13 +14,24 @@ namespace CombisMVC.Controllers
             _appUserService = appUserService;
         }
 
+        [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> Index()
         {
             var users = await _appUserService.GetAllUsersAsync();
             return View(users);
         }
 
+        [HttpGet("Klijent/{id}")]
+        [Authorize(Roles = "Administrator, Klijent")]
+        public async Task<IActionResult> Klijent(Guid id)
+        {
+            var user = await _appUserService.GetUserByIdAsync(id);
+            return View(user.Value);
+        }
+
+
         [HttpPost]
+        [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> Delete(Guid id)
         {
             await _appUserService.DeleteUserByIdAsync(id);
@@ -30,6 +40,7 @@ namespace CombisMVC.Controllers
 
 
         [HttpPost]
+        [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> UpdateUser([FromBody] UserDto dto)
         {
             await _appUserService.UpdateUser(dto);
