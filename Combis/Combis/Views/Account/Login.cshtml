@@ -1,26 +1,46 @@
 ﻿@model CommonLayer.DtoModells.UserCreateDto
 
-<h2>Login</h2>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
 
-<form id="registerForm" method="post">
-    <div>
-        <label for="Email">Email</label>
-        <input id="Email" name="Email" type="email" placeholder="Email" required />
-    </div>
-    <div>
-        <label for="Password">Password</label>
-        <input id="Password" name="Password" type="password" placeholder="Password" required />
-    </div>
-    <button type="submit">Login</button>
-</form>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <h2 class="mb-4 text-center">Login</h2>
 
-<!-- Link to Swagger -->
-<p>Register <a href="/Account/Register" target="_blank">View Swagger Docs</a></p>
-<p>Want to see the API documentation? <a href="/swagger" target="_blank">View Swagger Docs</a></p>
+            <form id="registerForm" method="post" class="border p-4 rounded shadow-sm bg-light">
+                <div class="mb-3">
+                    <label for="Email" class="form-label">Email</label>
+                    <input id="Email" name="Email" type="email" class="form-control" placeholder="Email" required />
+                </div>
+
+                <div class="mb-3">
+                    <label for="Password" class="form-label">Password</label>
+                    <input id="Password" name="Password" type="password" class="form-control" placeholder="Password" required />
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">Login</button>
+            </form>
+
+            <div class="text-center mt-3">
+                <p>
+                    Don't have an account?
+                    <a href="@Url.Action("Register", "Account")">Register here</a>
+                </p>
+                <p>
+                    Want to see the API documentation?
+                    <a href="/swagger" target="_blank">View Swagger Docs</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
     document.getElementById("registerForm").addEventListener("submit", async function (e) {
-        e.preventDefault();  
+        e.preventDefault();
         let formData = {
             Email: document.getElementById("Email").value,
             Password: document.getElementById("Password").value,
@@ -30,13 +50,13 @@
             const response = await fetch('@Url.Action("Login", "Account")', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',  
+                    'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(formData) 
+                body: JSON.stringify(formData)
             });
 
             if (response.ok) {
-                window.location.href = '/Dashboard/Index';  
+                window.location.href = '/Dashboard/Index';
             } else {
                 alert('Login failed. Please check your credentials and try again.');
             }

@@ -3,6 +3,7 @@ using CommonLayer.DtoModells;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
+using ServiceLayer.Interface;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
@@ -10,9 +11,9 @@ namespace CombisMVC.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly IUserService _userService;
+        private readonly IAppUserService _userService;
 
-        public AccountController(IUserService userService)
+        public AccountController(IAppUserService userService)
         {
             _userService = userService;
         }
@@ -44,13 +45,13 @@ namespace CombisMVC.Controllers
             }
 
             var token = await _userService.LoginAsync(dto);
-            if (string.IsNullOrEmpty(token))
+            if (string.IsNullOrEmpty(token.Value))
             {
                 return BadRequest("Invalid credentials.");
             }
 
             var handler = new JwtSecurityTokenHandler();
-            var jwt = handler.ReadJwtToken(token);
+            var jwt = handler.ReadJwtToken(token.Value);
             var claims = jwt.Claims;
             var identity = new ClaimsIdentity(claims, "jwt");
             var principal = new ClaimsPrincipal(identity);
