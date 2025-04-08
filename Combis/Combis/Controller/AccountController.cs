@@ -57,7 +57,6 @@ namespace CombisMVC.Controllers
             var principal = new ClaimsPrincipal(identity);
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
-            // Return OK with a redirect URL; alternatively, perform a server-side redirect
             return Ok(new { redirectUrl = Url.Action("Index", "Dashboard") });
         }
 

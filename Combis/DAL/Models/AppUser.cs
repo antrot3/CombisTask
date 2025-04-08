@@ -10,6 +10,6 @@ namespace DAL.Models
         public string FullName { get; set; }
 
         [Required]
-        public string Role { get; set; } = "Korisnik"; // or "Administrator"
+        public string Role { get; set; } = "Korisnik";
     }
 }

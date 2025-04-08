@@ -5,11 +5,11 @@ using Microsoft.AspNetCore.Identity;
 
 namespace DAL
 {
-    public class ApplicationDbContext : IdentityDbContext<AppUser, IdentityRole<Guid>, Guid> // Specify IdentityRole and Guid for key
+    public class ApplicationDbContext : IdentityDbContext<AppUser, IdentityRole<Guid>, Guid> 
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
         }
-        public DbSet<AppUser> AppUsers { get; set; } // Optionally, you can keep this DbSet if needed
+        public DbSet<AppUser> AppUsers { get; set; } 
     }
 }
