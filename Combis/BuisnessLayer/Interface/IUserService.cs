@@ -9,5 +9,6 @@ namespace BuisnessLayer.Interface
         Task<IEnumerable<UserDto>> GetAllUsersAsync();
         Task<UserDto> GetUserByIdAsync(Guid id);
         Task<bool> DeleteUserAsync(Guid id);
+        Task<bool> UpdateUser(UserDto userDto);
     }
 }

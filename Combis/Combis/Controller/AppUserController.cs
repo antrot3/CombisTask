@@ -1,32 +1,30 @@
-﻿using BuisnessLayer.Interface;
-using CommonLayer.DtoModells;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using CommonLayer.DtoModells;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ServiceLayer.Interface;
 using System.Security.Claims;
 
 namespace Combis.Controller
 {
-    [ApiController]  // This marks the class as an API controller
-    [Route("api/[controller]")]  // This defines the base route for your controller
+    [ApiController]
+    [Route("api/[controller]")]
     public class AppUsersController : ControllerBase
     {
-        private readonly IUserService _userService;
+        private readonly IAppUserService _appUserService;
         private readonly ILogger<AppUsersController> _logger;
 
-        public AppUsersController(IUserService userService, ILogger<AppUsersController> logger)
+        public AppUsersController(IAppUserService appUserService, ILogger<AppUsersController> logger)
         {
-            _userService = userService;
+            _appUserService = appUserService;
             _logger = logger;
         }
 
-        // Define your endpoints here
-        [HttpPost("register")]  // Endpoint for registration
+        [HttpPost("register")]
         public async Task<ActionResult<UserDto>> Register(UserCreateDto dto)
         {
             try
             {
-                var user = await _userService.RegisterAsync(dto);
+                var user = await _appUserService.RegisterAsync(dto);
                 return Ok(user);
             }
             catch (Exception ex)
@@ -36,12 +34,12 @@ namespace Combis.Controller
             }
         }
 
-        [HttpPost("login")]  // Endpoint for login
+        [HttpPost("login")]
         public async Task<ActionResult<string>> Login(UserLoginDto dto)
         {
             try
             {
-                var token = await _userService.LoginAsync(dto);
+                var token = await _appUserService.LoginAsync(dto);
                 return Ok(new { token });
             }
             catch (Exception ex)
@@ -50,37 +48,37 @@ namespace Combis.Controller
                 return Unauthorized(ex.Message);
             }
         }
-        [HttpGet("GetAllUsers2")]  // Endpoint for getting all users (restricted to admin role)
+        [HttpGet("GetAllUsers2")]
         public async Task<ActionResult<IEnumerable<UserDto>>> GetAllUsers2()
         {
             var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
             HttpContext.User = new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim(ClaimTypes.Role, "Administrator") }));
-            var users = await _userService.GetAllUsersAsync();
+            var users = await _appUserService.GetAllUsersAsync();
             return Ok(users);
         }
 
 
-        [HttpGet("GetAllUsers")]  // Endpoint for getting all users (restricted to admin role)
+        [HttpGet("GetAllUsers")]
         [Authorize(Roles = "Administrator")]
         public async Task<ActionResult<IEnumerable<UserDto>>> GetAllUsers()
         {
-            var users = await _userService.GetAllUsersAsync();
+            var users = await _appUserService.GetAllUsersAsync();
             return Ok(users);
         }
 
-        [HttpGet("GetUserById/{id}")]  // Endpoint for getting a user by ID
+        [HttpGet("GetUserById/{id}")]
         [Authorize]
         public async Task<ActionResult<UserDto>> GetUserById(Guid id)
         {
-            var user = await _userService.GetUserByIdAsync(id);
+            var user = await _appUserService.GetUserByIdAsync(id);
             return user == null ? NotFound() : Ok(user);
         }
 
-        [HttpDelete("DeleteUser/{id}")]  // Endpoint for deleting a user by ID
+        [HttpDelete("DeleteUser/{id}")]
         [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> DeleteUser(Guid id)
         {
-            await _userService.DeleteUserAsync(id);
+            await _appUserService.DeleteUserByIdAsync(id);
             return NoContent();
         }
     }

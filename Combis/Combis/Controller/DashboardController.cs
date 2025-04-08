@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using CommonLayer.DtoModells;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ServiceLayer.Interface;
 
@@ -25,6 +26,14 @@ namespace CombisMVC.Controllers
         {
             await _appUserService.DeleteUserByIdAsync(id);
             return RedirectToAction("Index");
+        }
+
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateUser([FromBody] UserDto dto)
+        {
+            await _appUserService.UpdateUser(dto);
+            return NoContent();
         }
     }
 }

@@ -10,5 +10,6 @@ namespace ServiceLayer.Interface
         Task<ActionResult<string>> LoginAsync(UserLoginDto loginDto);
         Task<ActionResult<UserDto>> GetUserByIdAsync(Guid id);
         Task<bool> DeleteUserByIdAsync(Guid id);
+        Task<bool> UpdateUser(UserDto userDto);
     }
 }

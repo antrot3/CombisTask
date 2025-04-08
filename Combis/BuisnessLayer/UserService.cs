@@ -32,7 +32,7 @@ namespace BuisnessLayer
                 PasswordHash = hash,
             };
             if (dto.IsAdministrator == true)
-                user.Role = "Administrator";  
+                user.Role = "Administrator";
             else
                 user.Role = "User";
 
@@ -79,6 +79,20 @@ namespace BuisnessLayer
             }
             return false;
 
+        }
+
+        public async Task<bool> UpdateUser(UserDto userDto)
+        {
+            var user = await _repo.GetByEmailAsync(userDto.Email);
+            if (user == null)
+            {
+                return false;
+            }
+            user.FullName = userDto.FullName;
+            user.Email = userDto.Email;
+            user.Role = userDto.Role;
+            await _repo.UpdateAsync(user);
+            return false;
         }
 
     }

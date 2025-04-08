@@ -11,11 +11,11 @@ namespace CombisMVC.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly IAppUserService _userService;
+        private readonly IAppUserService _appuserService;
 
-        public AccountController(IAppUserService userService)
+        public AccountController(IAppUserService appuserService)
         {
-            _userService = userService;
+            _appuserService = appuserService;
         }
 
         [HttpGet]
@@ -29,7 +29,7 @@ namespace CombisMVC.Controllers
                 return BadRequest("Invalid data.");
             }
 
-            var result = await _userService.RegisterAsync(dto);
+            var result = await _appuserService.RegisterAsync(dto);
             return Ok("Registration succes");
         }
 
@@ -44,7 +44,7 @@ namespace CombisMVC.Controllers
                 return BadRequest("Invalid data.");
             }
 
-            var token = await _userService.LoginAsync(dto);
+            var token = await _appuserService.LoginAsync(dto);
             if (string.IsNullOrEmpty(token.Value))
             {
                 return BadRequest("Invalid credentials.");

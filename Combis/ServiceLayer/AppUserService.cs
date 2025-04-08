@@ -38,5 +38,10 @@ namespace ServiceLayer.Service
         {
             return await _userService.DeleteUserAsync(id);
         }
+
+        public async Task<bool> UpdateUser(UserDto userDto)
+        {
+            return await _userService.UpdateUser(userDto);;
+        }
     }
 }
