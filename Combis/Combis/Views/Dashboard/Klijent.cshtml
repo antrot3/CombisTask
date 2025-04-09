@@ -20,7 +20,7 @@
                     <td><input class="form-control form-control-sm" value="@Model.FullName" data-field="FullName" data-id="@Model.Id" /></td>
                     <td><input class="form-control form-control-sm" value="@Model.Email" data-field="Email" data-id="@Model.Id" /></td>
                     <td>
-                        <select class="form-select form-select-sm" data-field="Role" data-id="@Model.Id">
+                        <select class="form-select form-select-sm" data-field="Role" data-id="@Model.Id" disabled>
                             <option value="Administrator" @(Model.Role == "Administrator" ? "selected" : "")>Administrator</option>
                             <option value="Klijent" @(Model.Role == "Klijent" ? "selected" : "")>Klijent</option>
                         </select>
@@ -52,6 +52,8 @@
 
 <script>
     $(document).ready(function () {
+        let initialEmail = $('input[data-field="Email"]').val();  
+
         $('.update-btn').click(function () {
             var userId = $(this).data('user-id');
             var row = $('#user-' + userId);
@@ -63,18 +65,49 @@
                 Role: row.find('[data-field="Role"]').val()
             };
 
-            $.ajax({
-                url: '/Dashboard/UpdateUser',
-                type: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify(updatedUser),
-                success: function () {
-                    alert('User updated successfully.');
-                },
-                error: function () {
-                    alert('Error updating user.');
+            // Check if the email has been changed
+            if (updatedUser.Email !== initialEmail) {
+                var confirmation = confirm("Your email has been changed. Are you sure you want to update it and log out?");
+                if (confirmation) {
+                    $.ajax({
+                        url: '/Dashboard/UpdateUser',
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify(updatedUser),
+                        success: function () {
+                            $.ajax({
+                                url: '/Account/Logout', 
+                                type: 'POST',
+                                success: function () {
+                                    alert('Your email has been updated. You have been logged out.');
+                                    window.location.href = '/Account/Login'; 
+                                },
+                                error: function () {
+                                    alert('Error logging out.');
+                                }
+                            });
+                        },
+                        error: function () {
+                            alert('Error updating user.');
+                        }
+                    });
+                } else {
+                    alert('Email change canceled.');
                 }
-            });
+            } else {
+                $.ajax({
+                    url: '/Dashboard/UpdateUser',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(updatedUser),
+                    success: function () {
+                        alert('User updated successfully.');
+                    },
+                    error: function () {
+                        alert('Error updating user.');
+                    }
+                });
+            }
         });
     });
 </script>

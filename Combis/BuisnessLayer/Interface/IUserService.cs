@@ -11,6 +11,7 @@ namespace BuisnessLayer.Interface
         Task<UserDto> GetUserByIdAsync(Guid id);
         Task<bool> DeleteUserAsync(Guid id);
         Task<bool> UpdateUser(UserDto userDto);
+        Task<bool> UpdateUserById(UserDto userDto);
         Task<UserAuthResult> LoginUserToAppAsync(UserLoginDto dto);
     }
 }

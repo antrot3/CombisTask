@@ -14,11 +14,15 @@ namespace CombisMVC.Controllers
             _appUserService = appUserService;
         }
 
+        [HttpGet("Index/{id}")]
         [Authorize(Roles = "Administrator")]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(Guid id)
         {
+            AdminBoardDto dto = new AdminBoardDto();
             var users = await _appUserService.GetAllUsersAsync();
-            return View(users);
+            dto.Users = users;
+            dto.CurrentUserGuid = id;
+            return View(dto);
         }
 
         [HttpGet("Klijent/{id}")]
@@ -40,10 +44,10 @@ namespace CombisMVC.Controllers
 
 
         [HttpPost]
-        [Authorize(Roles = "Administrator")]
+        [Authorize(Roles = "Administrator, Klijent")]
         public async Task<IActionResult> UpdateUser([FromBody] UserDto dto)
         {
-            await _appUserService.UpdateUser(dto);
+            await _appUserService.UpdateUserById(dto);
             return NoContent();
         }
     }

@@ -49,5 +49,9 @@ namespace ServiceLayer.Service
         {
             return await _userService.UpdateUser(userDto);;
         }
+        public async Task<bool> UpdateUserById(UserDto userDto)
+        {
+            return await _userService.UpdateUserById(userDto); ;
+        }
     }
 }

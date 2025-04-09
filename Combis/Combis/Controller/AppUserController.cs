@@ -48,15 +48,6 @@ namespace Combis.Controller
                 return Unauthorized(ex.Message);
             }
         }
-        [HttpGet("GetAllUsers2")]
-        public async Task<ActionResult<IEnumerable<UserDto>>> GetAllUsers2()
-        {
-            var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
-            HttpContext.User = new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim(ClaimTypes.Role, "Administrator") }));
-            var users = await _appUserService.GetAllUsersAsync();
-            return Ok(users);
-        }
-
 
         [HttpGet("GetAllUsers")]
         [Authorize(Roles = "Administrator")]

@@ -80,10 +80,6 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
     });
 
-// IMPORTANT: If you call AddAuthentication twice, the last call overrides the defaults.
-// To combine both, you can set defaults for API endpoints separately and explicitly call SignInAsync with the cookie scheme.
-// For our purposes, our login action will use the cookie scheme.
-
 // Add Authorization
 builder.Services.AddAuthorization();
 

@@ -1,5 +1,9 @@
 ﻿@model CommonLayer.DtoModells.UserCreateDto
 
+@{
+    ViewData["Title"] = "Register";
+}
+
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
 
 <div class="container mt-5">
@@ -21,12 +25,17 @@
                 <div class="mb-3">
                     <label for="Password" class="form-label">Password</label>
                     <input id="Password" name="Password" type="password" class="form-control" placeholder="Password" required />
+                    <div class="form-text text-muted">
+                        Password must be at least 8 characters and include uppercase, lowercase, and a number.
+                    </div>
                 </div>
 
                 <div class="form-check mb-3">
                     <input id="IsAdministrator" name="IsAdministrator" type="checkbox" class="form-check-input" />
                     <label class="form-check-label" for="IsAdministrator">Is Admin</label>
                 </div>
+
+                <div id="errorAlert" class="alert alert-danger d-none" role="alert"></div>
 
                 <button type="submit" class="btn btn-primary w-100">Register</button>
             </form>
@@ -49,14 +58,77 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
+    function validatePassword(password) {
+        const errors = [];
+
+        if (password.length < 8)
+            errors.push("Password must be at least 8 characters long.");
+        if (!/[A-Z]/.test(password))
+            errors.push("Password must contain at least one uppercase letter.");
+        if (!/[a-z]/.test(password))
+            errors.push("Password must contain at least one lowercase letter.");
+        if (!/[0-9]/.test(password))
+            errors.push("Password must contain at least one digit.");
+
+        const uniqueChars = new Set(password.split(''));
+        if (uniqueChars.size < 1)
+            errors.push("Password must contain at least one unique character.");
+
+        return errors;
+    }
+
+    function validateEmail(email) {
+        if (!email || typeof email !== "string") return false;
+
+        const parts = email.split('@@');
+        if (parts.length !== 2) return false;
+
+        const [local, domain] = parts;
+        if (!local || !domain) return false;
+        if (!domain.includes(".")) return false;
+
+        const domainParts = domain.split(".");
+        if (domainParts.some(part => part.trim() === "")) return false;
+
+        return true;
+    }
+
+    function showError(messages) {
+        const alertBox = document.getElementById("errorAlert");
+        alertBox.innerHTML = Array.isArray(messages) ? messages.join("<br/>") : messages;
+        alertBox.classList.remove("d-none");
+    }
+
     document.getElementById("registerForm").addEventListener("submit", async function (e) {
         e.preventDefault();
+        document.getElementById("errorAlert").classList.add("d-none");
 
-        let formData = {
-            FullName: document.getElementById("FullName").value,
-            Email: document.getElementById("Email").value,
-            Password: document.getElementById("Password").value,
-            IsAdministrator: document.getElementById("IsAdministrator").checked
+        const fullName = document.getElementById("FullName").value.trim();
+        const email = document.getElementById("Email").value.trim();
+        const password = document.getElementById("Password").value;
+        const isAdmin = document.getElementById("IsAdministrator").checked;
+
+        const validationErrors = [];
+
+        if (!fullName)
+            validationErrors.push("Full name is required.");
+
+        if (!validateEmail(email))
+            validationErrors.push("Please enter a valid email address.");
+
+        const passwordErrors = validatePassword(password);
+        validationErrors.push(...passwordErrors);
+
+        if (validationErrors.length > 0) {
+            showError(validationErrors);
+            return;
+        }
+
+        const formData = {
+            FullName: fullName,
+            Email: email,
+            Password: password,
+            IsAdministrator: isAdmin
         };
 
         try {
@@ -71,11 +143,12 @@
             if (response.ok) {
                 window.location.href = '@Url.Action("Login", "Account")';
             } else {
-                alert('Registration failed. Please try again.');
+                const errorText = await response.text();
+                showError("Registration failed: " + errorText);
             }
         } catch (error) {
             console.error('Error:', error);
-            alert('An error occurred. Please try again.');
+            showError("An unexpected error occurred. Please try again.");
         }
     });
 </script>

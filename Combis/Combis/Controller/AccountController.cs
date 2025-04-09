@@ -49,11 +49,9 @@ namespace CombisMVC.Controllers
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, result.Value.Principal);
 
             if (result.Value.User.Role == "Administrator")
-                return Ok(new { redirectUrl = Url.Action("Index", "Dashboard") });
+                return Ok(new { redirectUrl = Url.Action("Index", "Dashboard", new { id = result.Value.User.Id }) });
             else if (result.Value.User.Role == "Klijent")
-            {
                 return Ok(new { redirectUrl = Url.Action("Klijent", "Dashboard", new { id = result.Value.User.Id }) });
-            }
 
             return BadRequest("Unsupported role.");
         }

@@ -20,9 +20,22 @@ namespace BuisnessLayer
 
         public async Task<UserDto> RegisterAsync(UserCreateDto dto)
         {
+            if (string.IsNullOrWhiteSpace(dto.FullName))
+            {
+                throw new Exception("Full Name is required.");
+            }
+
+            if (string.IsNullOrWhiteSpace(dto.Email) || !IsValidEmail(dto.Email))
+            {
+                throw new Exception("Invalid Email address.");
+            }
 
             var existing = await _repo.GetByEmailAsync(dto.Email);
             if (existing != null) throw new Exception("User already exists");
+
+            var passwordErrors = ValidatePassword(dto.Password);
+            if (passwordErrors.Any())
+                throw new Exception("Password validation failed: " + string.Join("; ", passwordErrors));
 
             var hash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
 
@@ -32,20 +45,22 @@ namespace BuisnessLayer
                 FullName = dto.FullName,
                 Email = dto.Email,
                 PasswordHash = hash,
+                Role = dto.IsAdministrator == true ? "Administrator" : "Klijent"
             };
-            if (dto.IsAdministrator == true)
-                user.Role = "Administrator";
-            else
-                user.Role = "Klijent";
 
             var created = await _repo.AddAsync(user);
-
-            return new UserDto { Id = created.Id, FullName = created.FullName, Email = created.Email, Role = created.Role };
+            return new UserDto{Id = created.Id, FullName = created.FullName, Email = created.Email, Role = created.Role};
         }
 
         public async Task<string> LoginAsync(UserLoginDto dto)
         {
+            if (string.IsNullOrWhiteSpace(dto.Email) || !IsValidEmail(dto.Email))
+            {
+                throw new Exception("Invalid Email address.");
+            }
             var user = await _repo.GetByEmailAsync(dto.Email);
+            var passwordErrors = ValidatePassword(dto.Password);
+
             if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
                 throw new Exception("Invalid credentials");
 
@@ -55,28 +70,27 @@ namespace BuisnessLayer
         public async Task<UserAuthResult> LoginUserToAppAsync(UserLoginDto dto)
         {
             var token = await LoginAsync(dto);
-            if (string.IsNullOrEmpty(token))
-            {
+            if (string.IsNullOrWhiteSpace(token))
                 throw new Exception("Invalid credentials");
-            }
 
-            var user = await _repo.GetByEmailAsync(dto.Email);
-            if (user == null)
-            {
-                throw new Exception("User not found");
-            }
+            var user = await _repo.GetByEmailAsync(dto.Email) ?? throw new Exception("User not found");
 
-            var handler = new JwtSecurityTokenHandler();
-            var jwt = handler.ReadJwtToken(token);
-            var claims = jwt.Claims;
+            var claims = new JwtSecurityTokenHandler()
+                            .ReadJwtToken(token)
+                            .Claims;
 
-            var identity = new ClaimsIdentity(claims, "jwt");
-            var principal = new ClaimsPrincipal(identity);
-            var userDto =  new UserDto { Id = user.Id, FullName = user.FullName, Email = user.Email, Role = user.Role };
+            var principal = new ClaimsPrincipal(new ClaimsIdentity(claims, "jwt"));
+
             return new UserAuthResult
             {
                 Principal = principal,
-                User = userDto
+                User = new UserDto
+                {
+                    Id = user.Id,
+                    FullName = user.FullName,
+                    Email = user.Email,
+                    Role = user.Role
+                }
             };
         }
 
@@ -114,15 +128,71 @@ namespace BuisnessLayer
         public async Task<bool> UpdateUser(UserDto userDto)
         {
             var user = await _repo.GetByEmailAsync(userDto.Email);
+            if (string.IsNullOrWhiteSpace(userDto.Email) || !IsValidEmail(userDto.Email))
+            {
+                throw new Exception("Invalid Email address.");
+            }
             if (user == null)
             {
-                return false;
+                throw new Exception("User does not exist");
             }
             user.FullName = userDto.FullName;
             user.Email = userDto.Email;
             user.Role = userDto.Role;
             await _repo.UpdateAsync(user);
             return false;
+        }
+
+        public async Task<bool> UpdateUserById(UserDto userDto)
+        {
+            var user = await _repo.GetByIdAsync(userDto.Id);
+            if (string.IsNullOrWhiteSpace(userDto.Email) || !IsValidEmail(userDto.Email))
+            {
+                throw new Exception("Invalid Email address.");
+            }
+            if (user == null)
+            {
+                throw new Exception("User does not exist");
+            }
+            user.FullName = userDto.FullName;
+            user.Email = userDto.Email;
+            user.Role = userDto.Role;
+            await _repo.UpdateAsync(user);
+            return false;
+        }
+
+        private List<string> ValidatePassword(string password)
+        {
+            var errors = new List<string>();
+
+            if (password.Length < 8)
+                errors.Add("Password must be at least 8 characters long.");
+
+            if (!password.Any(char.IsUpper))
+                errors.Add("Password must contain at least one uppercase letter.");
+
+            if (!password.Any(char.IsLower))
+                errors.Add("Password must contain at least one lowercase letter.");
+
+            if (!password.Any(char.IsDigit))
+                errors.Add("Password must contain at least one digit.");
+
+            if (password.Distinct().Count() < 1)
+                errors.Add("Password must contain at least one unique character.");
+
+            return errors;
+        }
+
+        private bool IsValidEmail(string email)
+        {
+            var parts = email.Split('@');
+            if (parts.Length != 2) return false;
+
+            var local = parts[0];
+            var domain = parts[1];
+            if (string.IsNullOrWhiteSpace(local) || string.IsNullOrWhiteSpace(domain)) return false;
+
+            return domain.Contains(".");
         }
 
     }

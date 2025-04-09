@@ -11,6 +11,8 @@ namespace ServiceLayer.Interface
         Task<ActionResult<UserDto>> GetUserByIdAsync(Guid id);
         Task<bool> DeleteUserByIdAsync(Guid id);
         Task<bool> UpdateUser(UserDto userDto);
+
+        Task<bool> UpdateUserById(UserDto userDto);
         Task<ActionResult<UserAuthResult>> LoginUserToAppAsync(UserLoginDto loginDto);
     }
 }
