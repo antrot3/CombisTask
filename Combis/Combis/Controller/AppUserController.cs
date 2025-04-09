@@ -49,6 +49,38 @@ namespace Combis.Controller
             }
         }
 
+        [HttpPost("UpdateUserByEmail")]
+        [Authorize(Roles = "Administrator")]
+        public async Task<ActionResult<string>> UpdateUserByEmail(UserDto dto)
+        {
+            try
+            {
+                var user = await _appUserService.UpdateUser(dto);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Update Failed");
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPost("UpdateUserById")]
+        [Authorize(Roles = "Administrator")]
+        public async Task<ActionResult<string>> UpdateUserById(UserDto dto)
+        {
+            try
+            {
+                var user = await _appUserService.UpdateUserById(dto);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Update Failed");
+                return BadRequest(ex.Message);
+            }
+        }
+
         [HttpGet("GetAllUsers")]
         [Authorize(Roles = "Administrator")]
         public async Task<ActionResult<IEnumerable<UserDto>>> GetAllUsers()
@@ -64,6 +96,8 @@ namespace Combis.Controller
             var user = await _appUserService.GetUserByIdAsync(id);
             return user == null ? NotFound() : Ok(user);
         }
+
+
 
         [HttpDelete("DeleteUser/{id}")]
         [Authorize(Roles = "Administrator")]

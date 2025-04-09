@@ -124,41 +124,60 @@ namespace BuisnessLayer
             return false;
 
         }
-
         public async Task<bool> UpdateUser(UserDto userDto)
         {
-            var user = await _repo.GetByEmailAsync(userDto.Email);
             if (string.IsNullOrWhiteSpace(userDto.Email) || !IsValidEmail(userDto.Email))
             {
                 throw new Exception("Invalid Email address.");
             }
+
+            var user = await _repo.GetByEmailAsync(userDto.Email);
             if (user == null)
             {
                 throw new Exception("User does not exist");
             }
+            
+            if (userDto.Role != "Administrator" && userDto.Role != "Klijent")
+            {
+                throw new Exception("Role must be either 'Administrator' or 'Klijent'.");
+            }
+
             user.FullName = userDto.FullName;
             user.Email = userDto.Email;
             user.Role = userDto.Role;
+
             await _repo.UpdateAsync(user);
-            return false;
+            return true; 
         }
 
         public async Task<bool> UpdateUserById(UserDto userDto)
         {
-            var user = await _repo.GetByIdAsync(userDto.Id);
             if (string.IsNullOrWhiteSpace(userDto.Email) || !IsValidEmail(userDto.Email))
             {
                 throw new Exception("Invalid Email address.");
             }
+            if (userDto.Role != "Administrator" && userDto.Role != "Klijent")
+            {
+                throw new Exception("Role must be either 'Administrator' or 'Klijent'.");
+            }
+
+            var user = await _repo.GetByIdAsync(userDto.Id);
             if (user == null)
             {
                 throw new Exception("User does not exist");
             }
+
+            if (userDto.Role != "Administrator" && userDto.Role != "Klijent")
+            {
+                throw new Exception("Role must be either 'Administrator' or 'Klijent'.");
+            }
+           
             user.FullName = userDto.FullName;
             user.Email = userDto.Email;
             user.Role = userDto.Role;
+
             await _repo.UpdateAsync(user);
-            return false;
+            return true; 
         }
 
         private List<string> ValidatePassword(string password)
