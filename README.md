@@ -1,1 +1,1 @@
-Database will be created on startup, plz just chang ceonnection string
+Database will be created on startup, plz just change connection string
